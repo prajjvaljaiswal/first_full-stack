@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken")
 const app = express()
 const User = require("./models/user.js")
 const cookieParser = require("cookie-parser")
+const { UserAuth } = require("./middlewares/userAuth.js")
 
 app.use(cookieParser())
 app.use(express.json())
@@ -11,11 +12,6 @@ app.use(express.json())
 app.get("/signin", async (req, res) => {
     const email = req.body.email
     const password = req.body.password
-
-    // const {token} = req.cookies
-    // const decode = await jwt.verify(token,"prajjval2004")
-    // console.log(decode)
-    // console.log(req.cookies)
 
     if (!email || !password)
         res.send("Enter email and password")
@@ -27,22 +23,6 @@ app.get("/signin", async (req, res) => {
         res.send(user)
     } catch (err) {
         console.error("sign in failed: " + err)
-    }
-});
-
-app.get('/profile', async (req, res) => {
-    try {
-        const { token } = req.cookies
-        if (!token)
-            throw new Error("Invlaid token")
-        const decode = await jwt.verify(token, "prajjval2004");
-        const { _id } = decode
-        const user = await User.findById(_id)
-        if (!user)
-            throw new Error("User not found")
-        res.send(user)
-    } catch (err) {
-        res.status(400).send("Error: " + err)
     }
 });
 
@@ -61,7 +41,23 @@ app.post("/signup", async (req, res) => {
     }
 });
 
-app.patch("/user", async (req, res) => {
+app.get('/profile', UserAuth, async (req, res) => {
+    try {
+        const { token } = req.cookies
+        if (!token)
+            throw new Error("Invlaid token")
+        const decode = await jwt.verify(token, "prajjval2004");
+        const { _id } = decode
+        const user = await User.findById(_id)
+        if (!user)
+            throw new Error("User not found")
+        res.send(user)
+    } catch (err) {
+        res.status(400).send("Error: " + err)
+    }
+});
+
+app.patch("/user", UserAuth, async (req, res) => {
     // const name = req.body.firstname
     const id = req.body.id
     try {
@@ -73,7 +69,7 @@ app.patch("/user", async (req, res) => {
     }
 });
 
-app.delete("/user", (req, res) => {
+app.delete("/user", UserAuth, (req, res) => {
     try { } catch (err) { }
 });
 

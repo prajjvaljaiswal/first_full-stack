@@ -8,13 +8,13 @@ const UserAuth = async (req, res, next) => {
     const {token} = req.cookies
     try {
         if(!token){
-            res.status(400).send("No Cookies!")
+            throw new Error("Token does not exist")
         }
         const decode = jwt.verify(token,"prajjval2004")
         const id = decode._id
         const user = User.findById(id)
         if(!user){
-            res.status(404).send("User not exist")
+            throw new Error("user does not exist")
         }
         next()
     } catch (err) {
